@@ -1,0 +1,211 @@
+<div class="container mt-5">
+    <h1 class="text-center">List Data</h1>
+
+    <div class="d-flex justify-content-end mb-3">
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addPoolModal">Add</button>
+    </div>
+
+    <!-- Modal untuk Form Tambah Kolam Renang -->
+    <div class="modal fade" id="addPoolModal" tabindex="-1" aria-labelledby="addPoolModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addPoolModalLabel">Tambah Data</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addPoolForm">
+                    <div class="mb-3">
+                        <label for="nama" class="form-label">Nama</label>
+                        <input type="text" class="form-control" id="nama" placeholder="Masukkan nama kolam renang" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="lokasi" class="form-label">Lokasi</label>
+                        <input type="text" class="form-control" id="lokasi" placeholder="Masukkan lokasi" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="jam_opr" class="form-label">Jam Operasional</label>
+                        <input type="text" class="form-control" id="jam_opr" placeholder="Masukan Jadwal" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="harga" class="form-label">Harga</label>
+                        <input type="text" class="form-control" id="harga" placeholder="Masukkan harga tiket" required>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Simpan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+    <!-- List of Todos -->
+<ul id="todoList" class="list-group">
+    <% kolam_renang.forEach(pool => { %>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span>
+                <%= pool.id %>
+            </span>
+            <span>
+                <%= pool.nama %>
+            </span>
+            <span>
+                <%= pool.lokasi %>
+            </span>
+            <span>
+                <%= pool.jam_opr %>
+            </span>
+            <span>
+                <%= pool.harga %>
+            </span>
+            <div>
+                <button class="btn btn-sm btn-success mr-2 editBtn" data-id="<%= pool.id %>">Edit</button>
+                <button class="btn btn-sm btn-danger deleteBtn" data-id="<%= pool.id %>">Delete</button>
+            </div>
+        </li>
+    <% }); %>
+</ul>
+<!-- Edit Modal -->
+<div class="modal fade" id="editPoolModal" tabindex="-1" aria-labelledby="editPoolModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editPoolModalLabel">Edit Data</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editPoolForm">
+                    <input type="hidden" id="edit-id"> <!-- Untuk menyimpan ID kolam renang -->
+                    <div class="mb-3">
+                        <label for="edit-nama" class="form-label">Nama</label>
+                        <input type="text" class="form-control" id="edit-nama" placeholder="Masukkan nama kolam renang" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit-lokasi" class="form-label">Lokasi</label>
+                        <input type="text" class="form-control" id="edit-lokasi" placeholder="Masukkan lokasi" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit-jam_opr" class="form-label">Jam Operasional</label>
+                        <input type="text" class="form-control" id="edit-jam_opr" placeholder="Masukkan jadwal" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit-harga" class="form-label">Harga</label>
+                        <input type="text" class="form-control" id="edit-harga" placeholder="Masukkan harga tiket" required>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $('#addPoolForm').on('submit', function (e) {
+            e.preventDefault();
+
+            const poolData = {
+                nama: $('#nama').val(),
+                lokasi: $('#lokasi').val(),
+                jam_opr: $('#jam_opr').val(),
+                harga: $('#harga').val(),
+            };
+
+            $.ajax({
+                url: '/pools', // Endpoint server
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(poolData),
+                success: function (response) {
+                    alert('Kolam renang berhasil ditambahkan!');
+                    $('#addPoolModal').modal('hide');
+                    location.reload();
+                },
+                error: function (error) {
+                    console.error('Error dari server:', error.responseText); // Debugging error
+                    alert('Gagal menambahkan kolam renang. ' + error.responseText);
+                }
+            });
+        });
+
+        $('.editBtn').on('click', function () {
+            const editId = $(this).data('id'); // Ambil ID kolam renang yang dipilih
+    
+            // Ambil data kolam renang berdasarkan ID
+            $.ajax({
+                url: '/pools/' + editId, // Endpoint untuk mendapatkan data berdasarkan ID
+                type: 'GET',
+                success: function (data) {
+                    // Isi form dengan data kolam renang yang diterima
+                    $('#edit-id').val(data.id);  // Set ID pada form
+                    $('#edit-nama').val(data.nama);
+                    $('#edit-lokasi').val(data.lokasi);
+                    $('#edit-jam_opr').val(data.jam_opr);
+                    $('#edit-harga').val(data.harga);
+    
+                    // Tampilkan modal edit
+                    $('#editPoolModal').modal('show');
+                },
+                error: function (error) {
+                    console.error('Error mengambil data:', error.responseText);
+                    alert('Gagal mengambil data kolam renang untuk diedit.');
+                }
+            });
+        });
+    
+        // Ketika form edit disubmit
+        $('#editPoolForm').on('submit', function (e) {
+            e.preventDefault();
+    
+            const updatedData = {
+                nama: $('#edit-nama').val(),
+                lokasi: $('#edit-lokasi').val(),
+                jam_opr: $('#edit-jam_opr').val(),
+                harga: $('#edit-harga').val(),
+            };
+    
+            // Kirim data yang telah diupdate ke server menggunakan PUT
+            $.ajax({
+                url: '/pools/' + $('#edit-id').val(), // Gunakan ID kolam renang yang akan diupdate
+                type: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify(updatedData),
+                success: function (response) {
+                    alert('Kolam renang berhasil diperbarui!');
+                    $('#editPoolModal').modal('hide');
+                    location.reload(); // Reload halaman untuk melihat perubahan
+                },
+                error: function (error) {
+                    console.error('Error memperbarui data:', error.responseText);
+                    alert('Gagal memperbarui kolam renang.');
+                }
+            });
+        });
+    
+        // Menangani klik tombol Delete
+        $('.deleteBtn').on('click', function () {
+            const poolId = $(this).data('id');
+            console.log('Delete tombol diklik, ID:', poolId);
+    
+            // Konfirmasi sebelum menghapus data
+            if (confirm('Apakah Anda yakin ingin menghapus kolam renang ini?')) {
+                $.ajax({
+                    url: '/pools/' + poolId, // Endpoint untuk menghapus data kolam renang
+                    type: 'DELETE',
+                    success: function () {
+                        alert('Kolam renang berhasil dihapus!');
+                        location.reload(); // Reload halaman setelah penghapusan
+                    },
+                    error: function (error) {
+                        console.error('Error menghapus data:', error.responseText);
+                        alert('Gagal menghapus data kolam renang.');
+                    }
+                });
+            }
+        });
+    });
+</script>
